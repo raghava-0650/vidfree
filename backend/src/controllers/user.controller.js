@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import httpStatus from 'http-status';
 
-import { User } from '../model/user.model';
+import { User } from '../model/user.model.js';
 
 const login = async(req,res)=>{
     const { username, password } = req.body;
@@ -11,13 +12,13 @@ const login = async(req,res)=>{
     }
 
     try{
-        const user = await User.find({username});
+        const user = await User.findOne({username});
         if(!user){
             return res.status(httpStatus.NOT_FOUND).json({message:"user not found"})
         }
-
-        if(bcrypt.compare(password, user.password)){
-            let token = crypto.randomBytes(20).toStrinig("hex");
+        let userpassword = await bcrypt.compare(password, user.password)
+        if(userpassword){
+            let token = crypto.randomBytes(20).toString("hex");
 
             user.token = token;
             await user.save();
@@ -34,13 +35,13 @@ const regester = async(req,res)=>{
     try{
         const existingUser = await User.findOne({ username });
         if(existingUser){
-            return res.status(httpStatus.FOUND)
+            return res.status(httpStatus.FOUND).json({ msessage:"user already exists"});
         }
 
         const hashedpassword = await bcrypt.hash(password, 10);
 
         const newUser = new User({
-            name : name,
+            name: name,
             username: username,
             password: hashedpassword
         })
@@ -53,3 +54,5 @@ const regester = async(req,res)=>{
         res.json({ message: `something went wrong ${e}` });
     }
 }
+
+export { login, regester };
