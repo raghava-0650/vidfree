@@ -5,7 +5,18 @@ let messages = {};
 let timeonline = {};
 
 export const connectToSocket = (server)=>{
-    const io = new Server(server);
+    const io = new Server(server ,{
+        //connecting both frontend and backend 
+        // we should only do it now , but not in the prodction
+
+        cors:{
+            origin:"*",
+            methods:["GET","POST"],
+            allowedHeaders:["*"],
+            credentials:true
+        }
+
+    });
     
     io.on("connections", (socket)=>{
         socket.on("join-call",(path)=>{
